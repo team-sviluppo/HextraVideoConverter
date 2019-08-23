@@ -1,0 +1,192 @@
+<div style="padding: 2%;">
+  <filedrop (onFileDropped)="onFileDropped($event)" *ngIf="filesDropped.length === 0"></filedrop>
+  <div class="row" *ngIf="filesDropped.length > 0">
+    <div class="col-md-12">
+      <div style="float: left">
+        <h3>Files selezionati:</h3>
+      </div>
+      <div style="float: right">
+        <div class="form-group row">
+            <label for="aForm_1">Risoluzione (output)</label>
+            <input type="number" id="aForm_1" [(ngModel)]="SelectedResolution.width" (change)="SelectedResolution.setWidth(SelectedResolution.width)" placeholder="Larghezza" size="45">x
+            <input type="number" id="aForm_2" [(ngModel)]="SelectedResolution.height" (change)="SelectedResolution.setHeight(SelectedResolution.height)" placeholder="Altezza" size="45">
+            <label for="aspect_ratio">Formato (output)</label>
+            <div class="select">
+                <select id="aspect_ratio" [(ngModel)]="SelectedResolution.format" (change)="SelectedResolution.setWidth(SelectedResolution.width)">
+                    <option [ngValue]="aspect" [selected]="aspect.GetFormatString() === SelectedResolution.format.GetFormatString()" *ngFor="let aspect of AspectsList">{{aspect.GetFormatString()}}</option>
+                </select>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12 slideInLeft animated" [class.inactive]="!file.elaborate" *ngFor="let file of filesDropped; let i = index;">
+        <div class="card">
+            <div class="card-header">
+                {{file.filename}}
+                <div style="float: right;">
+                  <clr-checkbox [(ngModel)]="file.elaborate">
+                      {{file.elaborate ? "Elabora" : "Non elaborare"}}
+                  </clr-checkbox>
+                </div>
+            </div>
+            <div class="card-block">
+                <div class="card-title">
+                    <h3>Percorso: </h3><br />
+                    {{file.filepath}}
+                </div>
+                <div class="card-text">
+                    <h3>Proprietà del file:</h3>
+                    Tipo file: {{file.filetype}} <br />
+                    Gruppo formati: {{file.group_format}} <br />
+                    Dimensione file: {{file.size}} <br />
+                    Formato aspetto: {{file.FileData.aspect_ratio}} <br />
+                    Risoluzione video originale: {{file.FileData.Video_Width}}x{{file.FileData.Video_Height}} <br />
+                    <hr />
+                    <h3>Parametri di conversione:</h3>
+                    <section class="form-block">
+                      <!-- future implementation -->
+                      <!--
+                      <div class="form-group">
+                        <label for="codec_video_{{i}}">Codec Video: {{file.FileData.Video_Codec}}</label>
+                        <div class="select">
+                            <select id="codec_video_{{i}}" [(ngModel)]="file.FileData.Video_Codec">
+                                <option *ngFor="let codec of VideoCodecsList" [selected]="codec.codecName === file.FileData.Video_Codec">{{codec.codecName}}</option>
+                            </select>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="codec_audio_{{i}}">Codec Audio</label>
+                        <div class="select">
+                            <select id="codec_audio_{{i}}" [(ngModel)]="file.FileData.Audio_Codec">
+                                <option *ngFor="let codec of AudioCodecsList" [selected]="codec.codecName === file.FileData.Audio_Codec">{{codec.codecName}}</option>
+                            </select>
+                        </div>
+                      </div>
+                      -->
+                      <div class="form-group">
+                        <label for="bitrate_video_{{i}}">Bitrate Video</label>
+                        <input type="number" id="bitrate_video_{{i}}" [(ngModel)]="file.FileData.Video_Bitrate">
+
+                        <label for="bitrate_audio_{{i}}">Bitrate Audio</label>
+                        <input type="number" id="bitrate_audio_{{i}}" [(ngModel)]="file.FileData.Audio_Bitrate">
+                      </div>
+                      <div class="form-group">
+                        <div class="checkbox">
+                            <input type="checkbox" [(ngModel)]="file.FileData.UseOriginalResolution" id="useoriginal_{{i}}">
+                            <label for="useoriginal_{{i}}">Usa risoluzione originale</label>
+                        </div>
+                      </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+      <clr-wizard #elabWizard [(clrWizardOpen)]="openWizard" [clrWizardClosable]="!wizardElaborationStarted" [clrWizardDisableStepnav]="true" (clrWizardCurrentPageChanged)="onWizardPageChanged()">
+        <clr-wizard-title>Guida all'elaborazione</clr-wizard-title>
+
+        <clr-wizard-button [type]="'next'">Avanti</clr-wizard-button>
+        <clr-wizard-button [type]="'finish'" (click)="onWizardEnd()">Fine</clr-wizard-button>
+
+        <clr-wizard-page [clrWizardPageNextDisabled]="outputDir === undefined">
+            <ng-template clrPageTitle>Seleziona la directory di destinazione.</ng-template>
+            <form>
+              <section class="form-block">
+                <div class="form-group">
+                  <label for="dir_form">Directory di destinazione</label>
+                  <input id="dir_form" class="upload-list" type="file" (change)="selectDirectory($event)" webkitdirectory />
+                </div>
+              </section>
+            </form>
+        </clr-wizard-page>
+
+        <clr-wizard-page [clrWizardPageNextDisabled]="wizardElaborationStarted">
+            <ng-template clrPageTitle>Attendi che tutti i files siano elaborati.</ng-template>
+            <clr-datagrid>
+              <clr-dg-column>Nome file</clr-dg-column>
+              <clr-dg-column>Elaborato</clr-dg-column>
+              <clr-dg-column>In elaborazione</clr-dg-column>
+              <clr-dg-column>Stato elaborazione</clr-dg-column>
+              <clr-dg-row *ngFor="let file of filesDropped">
+                  <clr-dg-cell>{{file.filename}}</clr-dg-cell>
+                  <clr-dg-cell>
+                    <clr-icon *ngIf="file.elaboration_done" shape="check" class="is-success"></clr-icon>
+                    <clr-icon *ngIf="!file.elaboration_done" shape="times" class="is-error"></clr-icon>
+                  </clr-dg-cell>
+                  <clr-dg-cell>
+                    <clr-icon *ngIf="file.in_elaboration" shape="check" class="is-success"></clr-icon>
+                    <clr-icon *ngIf="!file.in_elaboration" shape="times" class="is-error"></clr-icon>
+                  </clr-dg-cell>
+                  <clr-dg-cell *ngIf="!file.in_elaboration && !file.elaboration_done">In coda..</clr-dg-cell>
+                  <clr-dg-cell *ngIf="!file.in_elaboration && file.elaboration_done">
+                    <span *ngIf="!file.loading_random_picutres">
+                        Elaborato.
+                    </span>
+                    <div *ngIf="file.loading_random_picutres" class="progress loop">
+                        <progress></progress>
+                    </div>
+                  </clr-dg-cell>
+                  <clr-dg-cell *ngIf="file.in_elaboration">
+                    <div *ngIf="!file.IsIndeterminate" class="progress progress-fade">
+                      <progress max="100" [value]="file.elaboration_progress"></progress>
+                    </div>
+                    <div *ngIf="file.IsIndeterminate" class="progress loop">
+                      <progress></progress>
+                    </div>
+                  </clr-dg-cell>
+              </clr-dg-row>
+          </clr-datagrid>
+        </clr-wizard-page>
+
+        <clr-wizard-page>
+            <ng-template clrPageTitle>Scegli una didascalia per ogni file elaborato.</ng-template>
+            <div class="row" *ngFor="let file of filesDropped">
+              <div class="col-md-12">
+                  <div class="card">
+                      <div class="card-header">
+                          {{file.filename}}
+                      </div>
+                      <div class="card-block">
+                          <div class="card-title">
+                              Thumbnail - genera <input type="number" [(ngModel)]="file.amount" (input)="file.fileInputChanged = true"> immagini
+                          </div>
+                          <div class="card-text">
+                              <thumbnail-chooser [sourcefiles]="file.screenshots_paths" (onImageSelected)="file.changeSelectedImage($event)"></thumbnail-chooser>
+                          </div>
+                      </div>
+                      <div class="card-footer">
+                          <button class="btn btn-sm btn-link animated" *ngIf="!file.generatingOtherPictures" (click)="file.generateOthers()" [class.infinite]="file.fileInputChanged" [class.tada]="file.fileInputChanged">Genera altre</button>
+                          <div *ngIf="file.generatingOtherPictures" class="progress loop">
+                            <progress></progress>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </clr-wizard-page>
+    </clr-wizard>
+  </div>
+
+  <div *ngIf="filesDropped.length > 0 && !openWizard && !finalModalOpened" class="fab-area">
+    <button class="btn btn-lg btn-success" (click)="openWizardProcess()">Inizia la conversione</button>
+  </div>
+</div>
+
+<clr-modal [(clrModalOpen)]="finalModalOpened" [clrModalClosable]="false">
+    <h3 class="modal-title">Fase di salvataggio</h3>
+    <div class="modal-body">
+        <p>Salvataggio in corso dei files, attendere.</p> <br />
+        <div class="progress">
+            <progress [max]="filesDropped.length" [value]="final_save_progress"></progress>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" [disabled]="!finalModalCloseEnabled" class="btn btn-primary" (click)="restore()">
+            Chiudi
+        </button>
+    </div>
+</clr-modal>
+<!--
+<button class="btn btn-primary" (click)="opened = true;">Modal?..</button>
+
+<button class="btn btn-primary" (click)="pingTest()">Ping Test</button>
+-->

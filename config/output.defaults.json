@@ -1,0 +1,17 @@
+{
+  "productInfo": {
+    "windows": {
+      "installer": {
+        "Authors": ["HextraSRL"],
+        "ExeName": "HextraVideoConverter.exe"
+      }
+    }
+  },
+  "outputPath": {
+    "global": "release",
+    "windows": [
+      "release",
+      "win32-all"
+    ]
+  }
+}

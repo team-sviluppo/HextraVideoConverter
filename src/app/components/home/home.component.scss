@@ -1,0 +1,21 @@
+div {
+  & > input {
+    color: blue;
+  }
+}
+
+// Fix for warning with electron - see https://github.com/electron/electron/issues/4420
+::selection {
+  background:rgba(255, 255, 125, 0.99);
+}
+
+.inactive {
+  opacity: 0.5;
+}
+
+.fab-area {
+  position: fixed;
+  z-index: 9999;
+  bottom: 0;
+  right: 0;
+}

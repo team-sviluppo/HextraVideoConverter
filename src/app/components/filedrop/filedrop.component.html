@@ -1,0 +1,57 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                Trascina i files nel riquadro.
+            </div>
+            <div class="card-block">
+              <div class="dragzone" *ngIf="!loadingFiles" [class.animated]="draggedOver" [class.pulse]="draggedOver" (dragenter)="onDragStart($event);" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+                <h3 *ngIf="_dragOverPreviews.coll.length == 0">Trascina qui i files</h3>
+                <h3 *ngIf="_dragOverPreviews.coll.length > 0">
+                  {{_dragOverPreviews.Total}} files da analizzare
+                </h3>
+              </div>
+              <div class="loading" *ngIf="loadingFiles">
+                <span class="spinner spinner-lg">
+
+                </span>
+              </div>
+              <div *ngIf="previews.coll.length > 0">
+                  <h3>{{previews.Compatibles}} files compatibili su {{previews.Total}} ({{previews.Uncompatibles}} non compatibili)</h3>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>
+                          Rimuovi
+                        </th>
+                        <th>
+                          Compatibile?
+                        </th>
+                        <th>
+                          File
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let filepreview of previews.coll">
+                        <td>
+                          <button class="btn btn-error" (click)="previews.removeItem(filepreview);">Rimuovi</button>
+                        </td>
+                        <td>
+                          <clr-icon shape="times" class="is-error" *ngIf="!filepreview.isCompatible"></clr-icon>
+                          <clr-icon shape="check" class="is-success" *ngIf="filepreview.isCompatible"></clr-icon>
+                        </td>
+                        <td>
+                          {{filepreview.filepath}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="fab-procede animated" *ngIf="buttonVisibile" [class.slideInRight]="buttonVisibile">
+  <button class="btn btn-lg btn-success animated" (click)="EmitData()" [class.pulse]="buttonVisibile" [class.infinite]="buttonVisibile">Procedi</button>
+</div>

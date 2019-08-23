@@ -1,0 +1,10 @@
+<div class="thumbnail-chooser-box">
+  <ul>
+    <li *ngFor="let thumbnail of fileslist">
+      <span *ngIf="!thumbnail.canBeShown" class="spinner spinner-md">
+          Loading...
+      </span>
+      <img (click)="selectImage(thumbnail.filepath)" *ngIf="thumbnail.canBeShown" [class.selected]="selectedImage === sourcefiles.indexOf(thumbnail.filepath)" class="thumbnail-image" [src]="thumbnail.sanitized_path" alt="" />
+    </li>
+  </ul>
+</div>
